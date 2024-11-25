@@ -1,2 +1,2 @@
 # Streamlit_Apps
- My Official repository Streamlit_lit Apps
+The official repository for my Streamlit Apps
