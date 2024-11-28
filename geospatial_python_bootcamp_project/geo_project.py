@@ -43,7 +43,7 @@ if not country_data.empty and not country_geometry.empty:
     annee = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
     total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
     #population_2022 = population_data[populatio_data['Country/Territory'] == selected_country]['annee']
-    density = population_data[population_data['Country/Territory]== selected_country]/ total_area
+    density = population_data[population_data['Country/Territory']== selected_country]/ total_area
     world_population_percentage = (population_2022 / population_data[population_data['annee'] == "2022 Population"]['World Population Percentage'].sum()) * 100
 
     stats = {
