@@ -39,19 +39,19 @@ country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
 # Affichage des statistiques clés
 if not country_data.empty and not country_geometry.empty:
-    st.subheader(f"Statistiques pour {selected_country}")
+    #st.subheader(f"Statistiques pour {selected_country}")
     annee = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
-    total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
+    #total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
     #population_2022 = population_data[populatio_data['Country/Territory'] == selected_country]['annee']
-    density = population_data[population_data['Country/Territory']== selected_country]/ total_area
-    world_population_percentage = (population_2022 / population_data[population_data['annee'] == "2022 Population"]['World Population Percentage'].sum()) * 100
+    #density = population_data[population_data['Country/Territory']== selected_country]/ total_area
+    #world_population_percentage = (population_2022 / population_data[population_data['annee'] == "2022 Population"]['World Population Percentage'].sum()) * 100
 
-    stats = {
-        "Superficie (km²)": round(total_area, 2),
-        "Densité de population (hab/km²)": round(density, 2),
-        "Pourcentage de la population mondiale": f"{world_population_percentage:.2f}%"
-    }
-    st.write(stats)
+    #stats = {
+        #"Superficie (km²)": round(total_area, 2),
+        #"Densité de population (hab/km²)": round(density, 2),
+        #"Pourcentage de la population mondiale": f"{world_population_percentage:.2f}%"
+   # }
+    #st.write(stats)
 
     # Visualisation de la carte
     st.subheader("Carte interactive")
@@ -64,10 +64,10 @@ if not country_data.empty and not country_geometry.empty:
     st_folium(folium_map, width=700, height=500)
 
     # Visualisation des données démographiques
-    st.subheader("Démographie")
-    years = st.multiselect("Sélectionnez les années :", sorted(country_data['annee'].unique()), default=[2020, 2022])
-    filtered_data = country_data[country_data['annee'].isin(years)]
-    fig = px.bar(filtered_data, x="Year", y="Population", title="Population au fil des années", labels={"Population": "Population"})
-    st.plotly_chart(fig)
+    #st.subheader("Démographie")
+    #years = st.multiselect("Sélectionnez les années :", sorted(country_data['annee'].unique()), default=[2020, 2022])
+    #filtered_data = country_data[country_data['annee'].isin(years)]
+    #fig = px.bar(filtered_data, x="Year", y="Population", title="Population au fil des années", labels={"Population": "Population"})
+    #st.plotly_chart(fig)
 else:
     st.warning("Données non disponibles pour ce pays.")
