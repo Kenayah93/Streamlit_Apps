@@ -33,7 +33,7 @@ selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 
 # Filtrage des données pour le pays sélectionné
 country_data = population_data[population_data['Country/Territory'] == selected_country]
-country_geometry = geospatial_data[geospatial_data['ADMIN'] == selected_country]
+country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
 target_years = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
 selection = {
