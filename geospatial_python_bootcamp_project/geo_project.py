@@ -36,7 +36,8 @@ country_data = population_data[population_data['Country/Territory'] == selected_
 country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
 country_geo_merge = geospatial_data.merge(population_data, on="Country/Territory", how="left")
-country_geo_merge.to_file("country_geo.geojson", driver="GeoJSON")
+country_geo_merge.to_file("country_geo_merge.geojson", driver="GeoJSON")
+country_geo= gpd.read_file("country_geo_merge.geojson")
                                         
 
 target_years = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
