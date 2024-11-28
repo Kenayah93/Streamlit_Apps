@@ -35,6 +35,10 @@ selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 country_data = population_data[population_data['Country/Territory'] == selected_country]
 country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
+country_geo_merge = geospatial_data.merge(population_data, on="Country/Territory", how="left")
+country_geo_merge.to_file("country_geo.geojson", driver="GeoJSON")
+                                        
+
 target_years = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
 selection = {
     "Year": target_years,
@@ -59,12 +63,12 @@ if not country_data.empty and not country_geometry.empty:
 
     # Visualisation de la carte
     st.subheader("Carte interactive")
-    capital_city = country_geometry['Capital'].iloc[0] # est la 4e colonne dans le fichier wolrd_population.csv
-    capital_coords = country_geometry['geometry'].iloc[0].centroid.coords[0]
+    capital_city = country_geo['Capital'].iloc[0] # est la 4e colonne dans le fichier wolrd_population.csv
+    capital_coords = country_geo['geometry'].iloc[0].centroid.coords[0]
 
     folium_map = folium.Map(location=capital_coords, zoom_start=5)
     folium.Marker(location=capital_coords, popup=f"Capitale : {capital_city}").add_to(folium_map)
-    folium.GeoJson(data=country_geometry).add_to(folium_map)
+    folium.GeoJson(data=country_geo).add_to(folium_map)
     st_folium(folium_map, width=700, height=500)
 
     # Visualisation des données démographiques
