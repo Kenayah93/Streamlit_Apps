@@ -60,7 +60,7 @@ else:
         st.subheader(f"Statistiques pour {selected_country}")
         try:
             # Superficie (conversion m² en km²)
-            total_area = country_geometry['geometry'].iloc[0].to_crs(epsg=3395).area / 10**6
+            total_area = country_geometry['geometry'].iloc[0].to_crs(epsg=4326).area / 10**6
 
             # Population 2022
             population_2022 = country_data.loc[:, '2022 Population'].values[0]
