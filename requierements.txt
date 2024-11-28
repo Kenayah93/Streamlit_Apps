@@ -1,6 +1,0 @@
-geopandas
-folium
-pandas
-streamlit_folium
-plotly
-requests
