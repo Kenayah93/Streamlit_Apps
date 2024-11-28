@@ -35,16 +35,16 @@ selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 country_data = population_data[population_data['Country/Territory'] == selected_country]
 country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
-Year = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
+annee = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
 
 
 # Affichage des statistiques clés
 if not country_data.empty and not country_geometry.empty:
     st.subheader(f"Statistiques pour {selected_country}")
     total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
-    population_2022 = country_data[country_data['Country/Territory'] == selected_country]['Year'].values[0]
+    population_2022 = country_data[country_data['Country/Territory'] == selected_country]['annee'].values[0]
     density = population_2022 / total_area
-    world_population_percentage = (population_2022 / population_data[population_data['Year'] == "2022 Population"]['World Population Percentage'].sum()) * 100
+    world_population_percentage = (population_2022 / population_data[population_data['annee'] == "2022 Population"]['World Population Percentage'].sum()) * 100
 
     stats = {
         "Superficie (km²)": round(total_area, 2),
@@ -65,8 +65,8 @@ if not country_data.empty and not country_geometry.empty:
 
     # Visualisation des données démographiques
     st.subheader("Démographie")
-    years = st.multiselect("Sélectionnez les années :", sorted(country_data['Year'].unique()), default=[2020, 2022])
-    filtered_data = country_data[country_data['Year'].isin(years)]
+    years = st.multiselect("Sélectionnez les années :", sorted(country_data['annee'].unique()), default=[2020, 2022])
+    filtered_data = country_data[country_data['annee'].isin(years)]
     fig = px.bar(filtered_data, x="Year", y="Population", title="Population au fil des années", labels={"Population": "Population"})
     st.plotly_chart(fig)
 else:
