@@ -21,7 +21,7 @@ population_data = load_population_data()
 geospatial_data = load_geospatial_data()
 
 # Configuration de la page
-st.set_page_config(page_title="Tableau de bord géospatial", layout="wide")
+st.set_page_config(page_title="Tableau de bord géospatial")
 
 # Titre de l'application
 st.title("Tableau de bord interactif : Population mondiale")
