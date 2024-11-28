@@ -38,7 +38,7 @@ country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 Year = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
 selection = {
     #"Year": target_years,
-    "Population" : [country_data[year] for year in target_years] 
+    "Population" : [country_data['Year'] for year in Year] 
 }
 
 
