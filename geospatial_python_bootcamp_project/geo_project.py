@@ -17,11 +17,12 @@ def load_geospatial_data():
     url = "https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson"
     return gpd.read_file(url)
 
+# Configuration de la page
+st.set_page_config(page_title="Tableau de bord géospatial", layout="wide")
+
 population_data = load_population_data()
 geospatial_data = load_geospatial_data()
 
-# Configuration de la page
-st.set_page_config(page_title="Tableau de bord géospatial")
 
 # Titre de l'application
 st.title("Tableau de bord interactif : Population mondiale")
