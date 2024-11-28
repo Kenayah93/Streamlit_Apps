@@ -46,9 +46,9 @@ selection = {
 if not country_data.empty and not country_geometry.empty:
     st.subheader(f"Statistiques pour {selected_country}")
     total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
-    population_2022 = country_data[country_data['Year'] == 2022]['Population'].values[0]
+    population_2022 = country_data[country_data['Year'] == "2022 Population"]['Population'].values[0]
     density = population_2022 / total_area
-    world_population_percentage = (population_2022 / population_data[population_data['Year'] == 2022]['Population'].sum()) * 100
+    world_population_percentage = (population_2022 / population_data[population_data['Year'] == "2022 Population"]['Population'].sum()) * 100
 
     stats = {
         "Superficie (km²)": round(total_area, 2),
