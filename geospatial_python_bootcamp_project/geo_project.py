@@ -1,54 +1,76 @@
 import streamlit as st
 import pandas as pd
 import geopandas as gpd
-import folium as fl
+import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 import requests
 
+# Chargement des données
+@st.cache
+def load_population_data():
+    url = "https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world_population.csv"
+    return pd.read_csv(url)
 
-# data loading
-geo_data = gpd.read_file("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson")
+@st.cache
+def load_geospatial_data():
+    url = "https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson"
+    return gpd.read_file(url)
 
-pop_data = pd.read_csv("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/main/13_final_project_data/world_population.csv")
+population_data = load_population_data()
+geospatial_data = load_geospatial_data()
 
+# Configuration de la page
+st.set_page_config(page_title="Tableau de bord géospatial", layout="wide")
 
-# Page stup 
+# Titre de l'application
+st.title("Tableau de bord interactif : Population mondiale")
 
-st.set_page_config(
-    layout="wide",
-    page_title = "Visualise la population mondiale"
-    )
+# Sélection du pays
+countries = population_data['Country/Territory'].unique()
+selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 
-# Application
-st.title("Interactive Dashboard : World Population")
+# Filtrage des données pour le pays sélectionné
+country_data = population_data[population_data['Country/Territory'] == selected_country]
+country_geometry = geospatial_data[geospatial_data['ADMIN'] == selected_country]
 
-# Select country
-
-world=gpd.read_file("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson")
-pop=pd.read_csv("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/main/13_final_project_data/world_population.csv")
-
-donnee=pop[pop['Country/Territory'].isin(world['name'])]['Country/Territory'].unique()
-col1, col2 = st.columns([1, 1])
-with col1:   
-    sel_country = st.selectbox('# **Select a country**', sorted(donnee))
-    annee=['2022 Population','2020 Population','2015 Population','2010 Population','2000 Population','1990 Population','1980 Population','1970 Population']
-    p_pop = pop[pop['Country/Territory'] == sel_country][annee]
-    annee_mul=st.multiselect(f"**Population of {sel_country}**",options=annee,default=annee)
-    pop_mul=p_pop[annee_mul]
-    st.markdown(f"##### **Population of {sel_country} depending on the year(s)**")
-    st.bar_chart(pop_mul.T)
-
-with col2:
-    pays = world[world['name'] == sel_country]
-    total_area=pop[pop['Country/Territory'] == sel_country]['Area (km²)'].values[0]
-    density=pop[pop['Country/Territory'] == sel_country]['Density (per km²)'].values[0]
-    growth_rate=pop[pop['Country/Territory'] == sel_country]['Growth Rate'].values[0]
-    pop_per=pop[pop['Country/Territory'] == sel_country]['World Population Percentage'].values[0]
-    st.markdown('#### Country statistics')
-    st.text(f'The area of the country is {total_area} km²\nThe density is {density} per km²\nThe growth rate is {growth_rate}\nIts percentage compared to the world is {pop_per} %')
-    m = fl.Map(location=[pays.geometry.centroid.y.values[0], pays.geometry.centroid.x.values[0]], zoom_start=5)
-    fl.GeoJson(pays).add_to(m)
-    st_folium(m, width=700, height=500)
+target_years = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
+selection = {
+    "Year": target_years,
+    "Population" : [country_data[year] for year in target_years] 
+}
 
 
+# Affichage des statistiques clés
+if not country_data.empty and not country_geometry.empty:
+    st.subheader(f"Statistiques pour {selected_country}")
+    total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
+    population_2022 = country_data[country_data['Year'] == 2022]['Population'].values[0]
+    density = population_2022 / total_area
+    world_population_percentage = (population_2022 / population_data[population_data['Year'] == 2022]['Population'].sum()) * 100
+
+    stats = {
+        "Superficie (km²)": round(total_area, 2),
+        "Densité de population (hab/km²)": round(density, 2),
+        "Pourcentage de la population mondiale": f"{world_population_percentage:.2f}%"
+    }
+    st.write(stats)
+
+    # Visualisation de la carte
+    st.subheader("Carte interactive")
+    capital_city = country_geometry['Capital'].iloc[0]
+    capital_coords = country_geometry['geometry'].iloc[0].centroid.coords[0]
+
+    folium_map = folium.Map(location=capital_coords, zoom_start=5)
+    folium.Marker(location=capital_coords, popup=f"Capitale : {capital_city}").add_to(folium_map)
+    folium.GeoJson(data=country_geometry).add_to(folium_map)
+    st_folium(folium_map, width=700, height=500)
+
+    # Visualisation des données démographiques
+    st.subheader("Démographie")
+    years = st.multiselect("Sélectionnez les années :", sorted(country_data['Year'].unique()), default=[2020, 2022])
+    filtered_data = country_data[country_data['Year'].isin(years)]
+    fig = px.bar(filtered_data, x="Year", y="Population", title="Population au fil des années", labels={"Population": "Population"})
+    st.plotly_chart(fig)
+else:
+    st.warning("Données non disponibles pour ce pays.")
