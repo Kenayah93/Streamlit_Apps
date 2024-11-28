@@ -17,15 +17,14 @@ def load_geospatial_data():
     url = "https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson"
     return gpd.read_file(url)
 
+population_data = load_population_data()
+geospatial_data = load_geospatial_data()
+
 # Configuration de la page
 st.set_page_config(page_title="Tableau de bord géospatial", layout="wide")
 
 # Titre de l'application
 st.title("Tableau de bord interactif : Population mondiale")
-
-population_data = load_population_data()
-geospatial_data = load_geospatial_data()
-
 
 # Sélection du pays
 countries = population_data['Country/Territory'].unique()
@@ -33,12 +32,7 @@ selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 
 # Filtrage des données pour le pays sélectionné
 country_data = population_data[population_data['Country/Territory'] == selected_country]
-country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
-
-country_geo_merge = geospatial_data.merge(population_data, on="Country/Territory", how="left")
-country_geo_merge.to_file("country_geo_merge.geojson", driver="GeoJSON")
-country_geo= gpd.read_file("country_geo_merge.geojson")
-                                        
+country_geometry = geospatial_data[geospatial_data['ADMIN'] == selected_country]
 
 target_years = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
 selection = {
@@ -64,12 +58,12 @@ if not country_data.empty and not country_geometry.empty:
 
     # Visualisation de la carte
     st.subheader("Carte interactive")
-    capital_city = country_geo['Capital'].iloc[0] # est la 4e colonne dans le fichier wolrd_population.csv
-    capital_coords = country_geo['geometry'].iloc[0].centroid.coords[0]
+    capital_city = country_geometry['Capital'].iloc[0]
+    capital_coords = country_geometry['geometry'].iloc[0].centroid.coords[0]
 
     folium_map = folium.Map(location=capital_coords, zoom_start=5)
     folium.Marker(location=capital_coords, popup=f"Capitale : {capital_city}").add_to(folium_map)
-    folium.GeoJson(data=country_geo).add_to(folium_map)
+    folium.GeoJson(data=country_geometry).add_to(folium_map)
     st_folium(folium_map, width=700, height=500)
 
     # Visualisation des données démographiques
