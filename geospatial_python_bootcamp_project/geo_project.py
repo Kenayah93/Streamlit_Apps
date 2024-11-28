@@ -20,12 +20,12 @@ def load_geospatial_data():
 # Configuration de la page
 st.set_page_config(page_title="Tableau de bord géospatial", layout="wide")
 
+# Titre de l'application
+st.title("Tableau de bord interactif : Population mondiale")
+
 population_data = load_population_data()
 geospatial_data = load_geospatial_data()
 
-
-# Titre de l'application
-st.title("Tableau de bord interactif : Population mondiale")
 
 # Sélection du pays
 countries = population_data['Country/Territory'].unique()
@@ -35,27 +35,31 @@ selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 country_data = population_data[population_data['Country/Territory'] == selected_country]
 country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
+target_years = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
+selection = {
+    "Year": target_years,
+    "Population" : [country_data[year] for year in target_years] 
+}
 
 
 # Affichage des statistiques clés
 if not country_data.empty and not country_geometry.empty:
-    #st.subheader(f"Statistiques pour {selected_country}")
-    annee = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
-    #total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
-    #population_2022 = population_data[populatio_data['Country/Territory'] == selected_country]['annee']
-    #density = population_data[population_data['Country/Territory']== selected_country]/ total_area
-    #world_population_percentage = (population_2022 / population_data[population_data['annee'] == "2022 Population"]['World Population Percentage'].sum()) * 100
+    st.subheader(f"Statistiques pour {selected_country}")
+    total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
+    population_2022 = country_data[country_data['Year'] == 2022]['Population'].values[0]
+    density = population_2022 / total_area
+    world_population_percentage = (population_2022 / population_data[population_data['Year'] == 2022]['Population'].sum()) * 100
 
-    #stats = {
-        #"Superficie (km²)": round(total_area, 2),
-        #"Densité de population (hab/km²)": round(density, 2),
-        #"Pourcentage de la population mondiale": f"{world_population_percentage:.2f}%"
-   # }
-    #st.write(stats)
+    stats = {
+        "Superficie (km²)": round(total_area, 2),
+        "Densité de population (hab/km²)": round(density, 2),
+        "Pourcentage de la population mondiale": f"{world_population_percentage:.2f}%"
+    }
+    st.write(stats)
 
     # Visualisation de la carte
     st.subheader("Carte interactive")
-    capital_city = country_geometry['Capital'].iloc[0]
+    capital_city = country_geometry['Capital'].iloc[0] # est la 4e colonne dans le fichier wolrd_population.csv
     capital_coords = country_geometry['geometry'].iloc[0].centroid.coords[0]
 
     folium_map = folium.Map(location=capital_coords, zoom_start=5)
@@ -64,10 +68,10 @@ if not country_data.empty and not country_geometry.empty:
     st_folium(folium_map, width=700, height=500)
 
     # Visualisation des données démographiques
-    #st.subheader("Démographie")
-    #years = st.multiselect("Sélectionnez les années :", sorted(country_data['annee'].unique()), default=[2020, 2022])
-    #filtered_data = country_data[country_data['annee'].isin(years)]
-    #fig = px.bar(filtered_data, x="Year", y="Population", title="Population au fil des années", labels={"Population": "Population"})
-    #st.plotly_chart(fig)
+    st.subheader("Démographie")
+    years = st.multiselect("Sélectionnez les années :", sorted(country_data['Year'].unique()), default=[2020, 2022])
+    filtered_data = country_data[country_data['Year'].isin(years)]
+    fig = px.bar(filtered_data, x="Year", y="Population", title="Population au fil des années", labels={"Population": "Population"})
+    st.plotly_chart(fig)
 else:
     st.warning("Données non disponibles pour ce pays.")
