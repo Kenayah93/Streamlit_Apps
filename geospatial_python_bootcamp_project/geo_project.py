@@ -36,17 +36,13 @@ country_data = population_data[population_data['Country/Territory'] == selected_
 country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
 Year = ["1970 Population", "1980 Population", "1990 Population", "2000 Population","2010 Population", "2015 Population", "2020 Population", "2022 Population"]
-selection = {
-    #"Year": target_years,
-    "Population" : [country_data['Year'] for year in Year] 
-}
 
 
 # Affichage des statistiques clés
 if not country_data.empty and not country_geometry.empty:
     st.subheader(f"Statistiques pour {selected_country}")
     total_area = country_geometry['geometry'].area.iloc[0] / 10**6  # Convertir m² en km²
-    population_2022 = country_data[country_data['Year'] == 2022]['Population'].values[0]
+    population_2022 = country_data[country_data['Year'] == 2022]['selected_country'].values[0]
     density = population_2022 / total_area
     world_population_percentage = (population_2022 / population_data[population_data['Year'] == "2022 Population"]['Population'].sum()) * 100
 
