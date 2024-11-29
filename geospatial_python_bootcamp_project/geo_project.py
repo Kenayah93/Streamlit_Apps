@@ -30,7 +30,7 @@ st.write(country_geometry.columns)  # Display the column names to inspect
 if not country_data.empty and not country_geometry.empty:
     st.subheader(f"Statistics for {selected_country}")
     total_area = country_geometry['geometry'].iloc[0].area / 10**6  # Convert square meters to square kilometers
-    
+
     # Assuming population data is in columns like '2022 Population', '2020 Population', etc.
     population_2022_column = '2022 Population'  # Adjust this column name after inspecting the dataset
     population_2022 = country_data[population_2022_column].values[0]  # Get population for 2022
