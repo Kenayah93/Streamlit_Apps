@@ -29,7 +29,7 @@ st.write(country_geometry.columns)  # Display the column names to inspect
 # Display key statistics
 if not country_data.empty and not country_geometry.empty:
     st.subheader(f"Statistics for {selected_country}")
-    total_area = country_geometry['geometry'].area.iloc[0]   #  / 10**6 Convert square meters to square kilometers
+    total_area = country_geometry['geometry'].area.iloc[0] / 10**2 #   Convert square meters to square kilometers
     
     # Assuming population data is in columns like '2022 Population', '2020 Population', etc.
     population_2022_column = '2022 Population'  # Adjust this column name after inspecting the dataset
@@ -41,8 +41,8 @@ if not country_data.empty and not country_geometry.empty:
     
     stats = {
         "Area (km²)": round(total_area, 2),
-        "Population Density (people/km²)": round(density, 2),
-        "World Population Percentage": f"{world_population_percentage:.2f}%"
+        "Population Density (people/km²)": round(density, 100),
+        "World Population Percentage": f"{world_population_percentage:.2f}" # %
     }
     st.write(stats)
 
