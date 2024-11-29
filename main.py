@@ -4,49 +4,112 @@ import geopandas as gpd
 import folium as fl
 from streamlit_folium import st_folium
 import plotly.express as px
-import requests
 
+# Configuration de la page
+st.set_page_config(page_title="Tableau de bord géospatial", layout="wide")
 
-# data loading
-geo_data = gpd.read_file("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson")
+# Chargement des données
+@st.cache_data
+def load_geospatial_data():
+    url = "https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/main/13_final_project_data/world.geojson"
+    return gpd.read_file(url)
 
-pop_data = pd.read_csv("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/main/13_final_project_data/world_population.csv")
+@st.cache_data
+def load_population_data():
+    url = "https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/main/13_final_project_data/world_population.csv"
+    return pd.read_csv(url)
 
+geospatial_data = load_geospatial_data()
+population_data = load_population_data()
 
-# Page stup 
+# Titre de l'application
+st.title("Tableau de bord interactif : Population mondiale")
 
-st.set_page_config(
-    layout="wide",
-    page_title = "Visualise la population mondiale"
-    )
+# Sélection du pays
+countries = population_data['Country/Territory'].unique()
+selected_country = st.selectbox("Sélectionnez un pays :", sorted(countries))
 
-# Application
-st.title("Interactive Dashboard : World Population")
+# Filtrage des données pour le pays sélectionné
+country_data = population_data[population_data['Country/Territory'] == selected_country]
+country_geometry = geospatial_data[geospatial_data['name'] == selected_country]
 
-# Select country
+# Vérification des données pour le pays sélectionné
+if not country_data.empty and not country_geometry.empty:
+    st.subheader(f"Statistiques pour {selected_country}")
 
-world=gpd.read_file("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/refs/heads/main/13_final_project_data/world.geojson")
-pop=pd.read_csv("https://raw.githubusercontent.com/tommyscodebase/12_Days_Geospatial_Python_Bootcamp/main/13_final_project_data/world_population.csv")
+    # Calcul des statistiques
+    try:
+        # Superficie (en km²)
+        total_area = country_geometry['geometry'].iloc[0].to_crs(epsg=4326).area / 10**6
 
-donnee=pop[pop['Country/Territory'].isin(world['name'])]['Country/Territory'].unique()
-col1, col2 = st.columns([1, 1])
-with col1:   
-    sel_country = st.selectbox('# **Select a country**', sorted(donnee))
-    annee=['2022 Population','2020 Population','2015 Population','2010 Population','2000 Population','1990 Population','1980 Population','1970 Population']
-    p_pop = pop[pop['Country/Territory'] == sel_country][annee]
-    annee_mul=st.multiselect(f"**Population of {sel_country}**",options=annee,default=annee)
-    pop_mul=p_pop[annee_mul]
-    st.markdown(f"##### **Population of {sel_country} depending on the year(s)**")
-    st.bar_chart(pop_mul.T)
+        # Population 2022
+        population_2022 = country_data['2022 Population'].values[0]
 
-with col2:
-    pays = world[world['name'] == sel_country]
-    total_area=pop[pop['Country/Territory'] == sel_country]['Area (km²)'].values[0]
-    density=pop[pop['Country/Territory'] == sel_country]['Density (per km²)'].values[0]
-    growth_rate=pop[pop['Country/Territory'] == sel_country]['Growth Rate'].values[0]
-    pop_per=pop[pop['Country/Territory'] == sel_country]['World Population Percentage'].values[0]
-    st.markdown('#### Country statistics')
-    st.text(f'The area of the country is {total_area} km²\nThe density is {density} per km²\nThe growth rate is {growth_rate}\nIts percentage compared to the world is {pop_per} %')
-    m = fl.Map(location=[pays.geometry.centroid.y.values[0], pays.geometry.centroid.x.values[0]], zoom_start=5)
-    fl.GeoJson(pays).add_to(m)
-    st_folium(m, width=700, height=500)
+        # Densité de population
+        density = population_2022 / total_area
+
+        # Pourcentage de la population mondiale
+        total_world_population = population_data['2022 Population'].sum()
+        world_population_percentage = (population_2022 / total_world_population) * 100
+
+        # Affichage des statistiques
+        stats = {
+            "Superficie (km²)": round(total_area, 2),
+            "Densité de population (hab/km²)": round(density, 2),
+            "Pourcentage de la population mondiale": f"{world_population_percentage:.2f}%",
+        }
+        st.write(stats)
+    except Exception as e:
+        st.error(f"Erreur lors du calcul des statistiques : {e}")
+
+    # Visualisation de la carte interactive
+    st.subheader("Carte interactive")
+    try:
+        # Extraction des coordonnées de la capitale
+        if 'Capital' in country_geometry.columns:
+            capital_city = country_geometry['Capital'].iloc[0]
+            capital_coords = list(country_geometry['geometry'].iloc[0].representative_point().coords)[0]
+        else:
+            capital_city = "Capitale inconnue"
+            capital_coords = list(country_geometry['geometry'].iloc[0].centroid.coords)[0]
+
+        # Création de la carte
+        folium_map = fl.Map(location=capital_coords, zoom_start=5)
+        fl.Marker(location=capital_coords, popup=f"Capitale : {capital_city}").add_to(folium_map)
+        fl.GeoJson(data=country_geometry).add_to(folium_map)
+        st_folium(folium_map, width=700, height=500)
+    except Exception as e:
+        st.error(f"Erreur lors de la génération de la carte : {e}")
+
+    # Visualisation des données démographiques
+    st.subheader("Démographie")
+    try:
+        # Colonnes contenant les populations
+        year_columns = [col for col in population_data.columns if "Population" in col and col.split()[0].isdigit()]
+        selected_years = st.multiselect("Sélectionnez les années :", year_columns, default=["2020 Population", "2022 Population"])
+
+        if selected_years:
+            filtered_data = country_data.melt(
+                id_vars=['Country/Territory'],
+                value_vars=selected_years,
+                var_name="Année",
+                value_name="Population"
+            )
+            filtered_data['Année'] = filtered_data['Année'].str.extract(r"(\d+)").astype(int)
+
+            # Visualisation
+            fig = px.bar(
+                filtered_data,
+                x="Année",
+                y="Population",
+                title=f"Évolution de la population de {selected_country}",
+                labels={"Population": "Population"},
+                text="Population"
+            )
+            st.plotly_chart(fig)
+        else:
+            st.warning("Aucune année sélectionnée.")
+    except Exception as e:
+        st.error(f"Erreur lors de la visualisation des données démographiques : {e}")
+else:
+    st.warning("Les données pour ce pays ne sont pas disponibles.")
