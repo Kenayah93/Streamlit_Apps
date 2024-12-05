@@ -48,7 +48,7 @@ if country_data.empty or country_geometry.empty:
 try:
     # Calcul de la superficie en km²
     country_geometry = country_geometry.to_crs(epsg=4326)  # Projection pour des calculs de surface précis
-    total_area = country_geometry['geometry'].iloc[0].area/10**6  # Surface en km²
+    total_area = country_geometry['geometry'].iloc[0].area #/10**6  # Surface en km²
 
     # Population en 2022
     population_2022 = country_data['2022 Population'].values[0]
